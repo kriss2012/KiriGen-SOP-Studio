@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team SOP Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+  :root{
+    --paper:#E8E4D8;
+    --paper-dark:#DCD7C7;
+    --ink:#1C1D1B;
+    --blueprint:#2E4057;
+    --blueprint-dim:#4A5D78;
+    --stamp:#A8321D;
+    --manila:#B98A34;
+    --line:#B8B2A0;
+    --white:#FBFAF6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+  }
+  ::selection{ background: var(--manila); color:var(--white); }
+
+  header.masthead{
+    padding: 36px 32px 22px;
+    border-bottom: 3px solid var(--ink);
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .brandmark{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .brandmark .glyph{
+    width:52px;height:52px;
+    border:2.5px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:0.5px;
+    flex-shrink:0;
+    position:relative;
+    background:var(--white);
+  }
+  .brandmark .glyph::before{
+    content:"";
+    position:absolute; inset:5px;
+    border:1px solid var(--ink);
+  }
+  .brandmark .glyph span{ position:relative; z-index:1; }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    font-size:clamp(28px,4vw,42px);
+    margin:0;
+    line-height:1;
+  }
+  .subtitle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--blueprint-dim);
+    margin-top:6px;
+    letter-spacing:0.5px;
+  }
+  .doc-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-align:right;
+    color:var(--blueprint-dim);
+    line-height:1.7;
+  }
+  .doc-meta b{ color:var(--ink); }
+
+  main{
+    max-width:1320px;
+    margin:0 auto;
+    padding:32px;
+    display:grid;
+    grid-template-columns: 400px 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width: 940px){
+    main{ grid-template-columns: 1fr; }
+  }
+
+  /* ---- Clipboard intake panel ---- */
+  .clipboard{
+    background:var(--white);
+    border:1px solid var(--ink);
+    box-shadow: 6px 6px 0 rgba(28,29,27,0.12);
+    position:relative;
+  }
+  .clipboard::before{
+    content:"";
+    position:absolute;
+    top:-14px; left:50%;
+    transform:translateX(-50%);
+    width:120px; height:26px;
+    background:var(--manila);
+    border:2px solid var(--ink);
+    border-radius:4px;
+  }
+  .clipboard::after{
+    content:"";
+    position:absolute;
+    top:-9px; left:50%;
+    transform:translateX(-50%);
+    width:20px; height:16px;
+    border-radius:50%;
+    background:var(--white);
+    border:2px solid var(--ink);
+  }
+  .clip-inner{ padding:34px 26px 26px; }
+
+  .field{ margin-bottom:20px; }
+  .field label{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    color:var(--blueprint);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .field label .hint{
+    text-transform:none;
+    color:var(--line);
+    font-weight:400;
+    letter-spacing:0;
+  }
+  input[type="text"], input[type="password"], textarea, select{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    resize:vertical;
+  }
+  textarea{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.5;}
+  input:focus, textarea:focus, select:focus{
+    outline:2px solid var(--blueprint);
+    outline-offset:1px;
+    background:var(--white);
+  }
+  select{ appearance:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%231C1D1B'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;}
+
+  .type-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .type-opt{
+    border:1.5px solid var(--ink);
+    padding:10px 8px;
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    cursor:pointer;
+    background:var(--paper);
+    transition: background .12s, color .12s;
+  }
+  .type-opt:hover{ background:var(--paper-dark); }
+  .type-opt.active{ background:var(--blueprint); color:var(--white); border-color:var(--blueprint); }
+
+  .file-drop{
+    border:1.5px dashed var(--line);
+    padding:14px 12px;
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--blueprint-dim);
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .file-drop:hover{ border-color:var(--blueprint); color:var(--blueprint); }
+  .file-drop.has-file{ border-style:solid; border-color:var(--manila); color:var(--ink); }
+
+  textarea#transcript{ min-height:170px; }
+
+  .generate-btn{
+    width:100%;
+    background:var(--stamp);
+    color:var(--white);
+    border:none;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:14px;
+    cursor:pointer;
+    margin-top:6px;
+    transition: filter .12s, transform .05s;
+  }
+  .generate-btn:hover{ filter:brightness(1.08); }
+  .generate-btn:active{ transform:translateY(1px); }
+  .generate-btn:disabled{ background:var(--line); cursor:wait; }
+
+  .key-row{ display:flex; gap:8px; align-items:flex-end; }
+  .key-row .field{ flex:1; margin-bottom:0; }
+  .key-toggle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--blueprint-dim);
+    margin-top:6px;
+    cursor:pointer;
+    text-decoration:underline;
+    display:inline-block;
+  }
+  details.settings{ margin-top:4px; }
+  details.settings summary{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    color:var(--blueprint);
+    cursor:pointer;
+    margin-bottom:14px;
+    font-weight:600;
+  }
+
+  .error-msg{
+    background:#F4E3DE;
+    border:1.5px solid var(--stamp);
+    color:var(--stamp);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    padding:10px 12px;
+    margin-top:14px;
+    display:none;
+  }
+
+  /* ---- Output document panel ---- */
+  .doc-panel{ min-height:400px; }
+  .doc-toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px; flex-wrap:wrap; gap:10px;
+  }
+  .doc-toolbar .status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; color:var(--blueprint-dim); letter-spacing:0.4px;
+  }
+  .toolbar-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .tbtn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+    background:var(--white); border:1.5px solid var(--ink); color:var(--ink);
+    padding:8px 12px; cursor:pointer;
+  }
+  .tbtn:hover{ background:var(--ink); color:var(--white); }
+  .tbtn:disabled{ opacity:0.35; cursor:default; }
+  .tbtn:disabled:hover{ background:var(--white); color:var(--ink); }
+
+  .sheet{
+    background:var(--white);
+    border:1px solid var(--ink);
+    box-shadow: 8px 8px 0 rgba(28,29,27,0.12);
+    position:relative;
+    min-height:520px;
+    padding:44px 44px 40px;
+  }
+  .stamp-seal{
+    position:absolute;
+    top:34px; right:40px;
+    width:118px; height:118px;
+    border:3px solid var(--stamp);
+    border-radius:50%;
+    color:var(--stamp);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    transform: rotate(-14deg);
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    line-height:1.3;
+    opacity:0.88;
+    mix-blend-mode:multiply;
+  }
+  .stamp-seal::before{
+    content:"";
+    position:absolute; inset:8px;
+    border:1px solid var(--stamp);
+    border-radius:50%;
+  }
+  .stamp-seal .stamp-date{
+    position:absolute;
+    bottom:26px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px;
+    font-weight:500;
+    letter-spacing:0.5px;
+  }
+
+  .doc-control{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    border:1.5px solid var(--ink);
+    margin-bottom:28px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+  }
+  .doc-control div{
+    padding:8px 10px;
+    border-right:1px solid var(--ink);
+  }
+  .doc-control div:last-child{ border-right:none; }
+  .doc-control .dc-label{
+    display:block; color:var(--blueprint-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; font-size:9px;
+  }
+  .doc-control .dc-val{ color:var(--ink); font-weight:600; }
+
+  .empty-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:420px; text-align:center; color:var(--line);
+  }
+  .empty-state .glyph-big{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:44px; border:2.5px solid var(--line); width:88px; height:88px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:18px;
+  }
+  .empty-state p{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; max-width:320px; line-height:1.6;
+  }
+
+  .doc-body h1{
+    font-size:26px; border-bottom:2px solid var(--ink); padding-bottom:10px; margin-bottom:18px;
+  }
+  .doc-body h2{
+    font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.4px;
+    font-size:16px; color:var(--blueprint); margin-top:30px; margin-bottom:10px;
+    border-left:4px solid var(--blueprint); padding-left:10px;
+  }
+  .doc-body h3{ font-size:14px; margin-top:20px; margin-bottom:8px; font-weight:600; }
+  .doc-body p{ line-height:1.7; font-size:14.5px; margin:0 0 12px; }
+  .doc-body ul, .doc-body ol{ line-height:1.75; font-size:14.5px; padding-left:22px; margin:0 0 14px;}
+  .doc-body li{ margin-bottom:6px; }
+  .doc-body ol{ counter-reset:step; list-style:none; padding-left:0; }
+  .doc-body ol > li{
+    counter-increment:step;
+    position:relative;
+    padding-left:40px;
+    margin-bottom:14px;
+  }
+  .doc-body ol > li::before{
+    content: counter(step);
+    position:absolute; left:0; top:-1px;
+    width:26px; height:26px;
+    background:var(--blueprint); color:var(--white);
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .doc-body input[type="checkbox"]{ margin-right:8px; }
+  .doc-body code{
+    font-family:'IBM Plex Mono',monospace; background:var(--paper); padding:2px 5px; font-size:12.5px;
+  }
+  .doc-body strong{ color:var(--ink); }
+  .doc-body hr{ border:none; border-top:1px dashed var(--line); margin:26px 0; }
+  .doc-body table{ width:100%; border-collapse:collapse; margin-bottom:16px; font-size:13.5px; }
+  .doc-body th, .doc-body td{ border:1px solid var(--line); padding:7px 10px; text-align:left; }
+  .doc-body th{ background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; }
+  .doc-body blockquote{ border-left:3px solid var(--manila); margin:0 0 14px; padding-left:14px; color:var(--blueprint-dim); font-style:italic; }
+
+  .footer-strip{
+    max-width:1320px; margin:0 auto; padding:0 32px 40px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--blueprint-dim);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  .loader{
+    display:flex; align-items:center; justify-content:center; height:420px;
+    flex-direction:column; gap:16px;
+  }
+  .loader .stamp-anim{
+    width:70px; height:70px; border:3px solid var(--stamp); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--stamp); font-weight:600;
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:0.6;} 50%{ transform:scale(1.08); opacity:1;} }
+  .loader p{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--blueprint-dim); }
+
+  .history-strip{
+    display:flex; gap:8px; overflow-x:auto; margin-top:16px; padding-bottom:4px;
+  }
+  .hist-tab{
+    flex-shrink:0;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    border:1.5px solid var(--ink); background:var(--manila); color:var(--white);
+    padding:6px 12px; cursor:pointer; white-space:nowrap;
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+  }
+  .hist-tab.active{ background:var(--blueprint); }
+
+  @media (prefers-reduced-motion: reduce){
+    .loader .stamp-anim{ animation:none; }
+  }
+
+  @media print{
+    body{ background:#fff; }
+    header.masthead, .clipboard, .doc-toolbar, .history-strip, .footer-strip{ display:none !important; }
+    main{ display:block; padding:0; max-width:none; }
+    .sheet{ box-shadow:none; border:none; padding:0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brandmark">
+    <div class="glyph"><span>SOP</span></div>
+    <div>
+      <h1>Team SOP Generator</h1>
+      <div class="subtitle">MESSY PROCESS &rarr; STEP-BY-STEP DOCUMENTATION</div>
+    </div>
+  </div>
+  <div class="doc-meta">
+    FORM NO. <b>TSG-01</b><br>
+    FOR MANAGERS OF <b>PEOPLE &amp; SYSTEMS</b>
+  </div>
+</header>
+
+<main>
+  <!-- INTAKE -->
+  <section class="clipboard">
+    <div class="clip-inner">
+
+      <div class="field">
+        <label>01 &nbsp;Output type</label>
+        <div class="type-grid" id="typeGrid">
+          <div class="type-opt active" data-val="sop">SOP</div>
+          <div class="type-opt" data-val="onboarding">Onboarding Doc</div>
+          <div class="type-opt" data-val="checklist">Checklist</div>
+          <div class="type-opt" data-val="qa">QA System</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>02 &nbsp;Raw material <span class="hint">— paste a transcript, notes, or messy process</span></label>
+        <textarea id="transcript" placeholder="Paste your Loom transcript, Slack thread, voice memo transcript, or a rough description of how the process currently works..."></textarea>
+        <div class="file-drop" id="fileDrop">+ Attach a .txt / .md transcript file instead</div>
+        <input type="file" id="fileInput" accept=".txt,.md" style="display:none;">
+      </div>
+
+      <div class="field">
+        <label>03 &nbsp;Process name <span class="hint">— optional</span></label>
+        <input type="text" id="processName" placeholder="e.g. Client Onboarding, Weekly QA Review">
+      </div>
+
+      <div class="field">
+        <label>04 &nbsp;Who runs this <span class="hint">— optional</span></label>
+        <input type="text" id="role" placeholder="e.g. New CS hires, Ops coordinator">
+      </div>
+
+      <div class="field">
+        <label>05 &nbsp;Detail level</label>
+        <select id="detailLevel">
+          <option value="concise">Concise — just the steps</option>
+          <option value="standard" selected>Standard — steps + context</option>
+          <option value="thorough">Thorough — steps, edge cases, tips</option>
+        </select>
+      </div>
+
+      <details class="settings">
+        <summary>&#9881; API settings</summary>
+        <div class="field">
+          <label>Anthropic API key</label>
+          <input type="password" id="apiKey" placeholder="sk-ant-...">
+          <span class="key-toggle" id="toggleKeyVis">show key</span>
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <input type="text" id="model" value="claude-sonnet-4-6">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="rememberKey" style="width:auto;"> Remember key on this device
+          </label>
+        </div>
+      </details>
+
+      <button class="generate-btn" id="generateBtn">Generate document</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="doc-panel">
+    <div class="doc-toolbar">
+      <div class="status" id="statusLine">NO DOCUMENT GENERATED YET</div>
+      <div class="toolbar-actions">
+        <button class="tbtn" id="copyBtn" disabled>Copy</button>
+        <button class="tbtn" id="downloadMdBtn" disabled>Download .md</button>
+        <button class="tbtn" id="printBtn" disabled>Print / PDF</button>
+        <button class="tbtn" id="regenBtn" disabled>Regenerate</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <div class="empty-state" id="emptyState">
+        <div class="glyph-big">?</div>
+        <p>Upload or paste a messy process on the left. The generator will turn it into a structured, numbered document — ready to hand to your team.</p>
+      </div>
+    </div>
+
+    <div class="history-strip" id="historyStrip"></div>
+  </section>
+</main>
+
+<div class="footer-strip">
+  <span>RUNS ENTIRELY IN YOUR BROWSER · YOUR API KEY IS SENT ONLY TO api.anthropic.com</span>
+  <span>REV. LOCAL BUILD</span>
+</div>
+
+<script>
+(function(){
+  const typeGrid = document.getElementById('typeGrid');
+  let selectedType = 'sop';
+  typeGrid.addEventListener('click', (e)=>{
+    const opt = e.target.closest('.type-opt');
+    if(!opt) return;
+    [...typeGrid.children].forEach(c=>c.classList.remove('active'));
+    opt.classList.add('active');
+    selectedType = opt.dataset.val;
+  });
+
+  const fileDrop = document.getElementById('fileDrop');
+  const fileInput = document.getElementById('fileInput');
+  const transcriptEl = document.getElementById('transcript');
+  fileDrop.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      transcriptEl.value = e.target.result;
+      fileDrop.textContent = '✓ Loaded: ' + f.name;
+      fileDrop.classList.add('has-file');
+    };
+    reader.readAsText(f);
+  });
+
+  const apiKeyEl = document.getElementById('apiKey');
+  const rememberKeyEl = document.getElementById('rememberKey');
+  const toggleKeyVis = document.getElementById('toggleKeyVis');
+  toggleKeyVis.addEventListener('click', ()=>{
+    if(apiKeyEl.type === 'password'){ apiKeyEl.type='text'; toggleKeyVis.textContent='hide key'; }
+    else { apiKeyEl.type='password'; toggleKeyVis.textContent='show key'; }
+  });
+  // restore remembered key
+  const savedKey = localStorage.getItem('tsg_api_key');
+  if(savedKey){ apiKeyEl.value = savedKey; rememberKeyEl.checked = true; }
+  rememberKeyEl.addEventListener('change', ()=>{
+    if(!rememberKeyEl.checked) localStorage.removeItem('tsg_api_key');
+  });
+
+  const TYPE_LABELS = {
+    sop: 'Standard Operating Procedure',
+    onboarding: 'Onboarding Guide',
+    checklist: 'Checklist',
+    qa: 'QA System'
+  };
+
+  const TYPE_INSTRUCTIONS = {
+    sop: `Produce a formal Standard Operating Procedure. Include: a one-line purpose statement, a "Who this is for" line, a "Tools / access needed" list if relevant, then the procedure as a NUMBERED sequence of steps (each step: one clear action, starting with a verb). Call out decision points, common mistakes, and edge cases as they naturally occur. End with a short "Definition of done" section describing what a correctly completed process looks like.`,
+    onboarding: `Produce a friendly but precise Onboarding Guide for someone new to this process or role. Include: a short welcome/context paragraph, a "What you'll be doing" overview, then numbered step-by-step instructions written for a first-timer (explain WHY steps matter, not just what to do), a "Who to ask for help" section (use placeholders like [Team Lead] if no name is given), and a short "You'll know you're doing it right when..." section.`,
+    checklist: `Produce a tight, scannable Checklist. Include a one-line purpose at the top, then group items under clear section headings if the process has natural phases (e.g. Before / During / After). Every actionable item must be a markdown checkbox list item ("- [ ] ..."), written as a short imperative action. Avoid long paragraphs — this document should be usable as a printed physical checklist.`,
+    qa: `Produce a QA / Quality Assurance system document. Include: the standard this process should meet, a numbered list of QA checkpoints tied to specific steps in the process, pass/fail criteria for each checkpoint (be concrete and measurable where possible), a section on how to log and escalate a failed check, and a suggested review cadence (e.g. weekly spot-check, per-transaction, etc. — infer a sensible one from context).`
+  };
+
+  const DETAIL_INSTRUCTIONS = {
+    concise: 'Keep it lean — steps only, minimal explanation, no fluff. Aim for the shortest version that is still complete and usable.',
+    standard: 'Balance brevity with clarity — include brief context for non-obvious steps, but do not pad.',
+    thorough: 'Be thorough — include edge cases, common failure points, and practical tips a new team member would actually need, without becoming bloated or repetitive.'
+  };
+
+  function buildPrompt(){
+    const transcript = transcriptEl.value.trim();
+    const processName = document.getElementById('processName').value.trim();
+    const role = document.getElementById('role').value.trim();
+    const detail = document.getElementById('detailLevel').value;
+
+    let sys = `You are an operations specialist who turns messy, unstructured process descriptions (Loom transcripts, voice memos, Slack threads, stream-of-consciousness notes) into clean, usable team documentation. You write in plain, direct language — never corporate filler. You infer reasonable structure from messy input without inventing false specifics; where information is genuinely missing, use a clearly marked placeholder like [tool name] rather than guessing a fact.
+
+Output valid Markdown only — no commentary before or after the document, no code fences wrapping the whole thing. Start directly with an H1 title.
+
+Document type: ${TYPE_LABELS[selectedType]}
+${TYPE_INSTRUCTIONS[selectedType]}
+
+Detail level: ${DETAIL_INSTRUCTIONS[detail]}`;
+
+    let user = `Here is the raw, messy source material to turn into a ${TYPE_LABELS[selectedType]}:\n\n---\n${transcript}\n---`;
+    if(processName) user += `\n\nProcess name: ${processName}`;
+    if(role) user += `\nThis is performed by / intended for: ${role}`;
+
+    return {system: sys, user};
+  }
+
+  let historyDocs = [];
+  let activeHistIndex = -1;
+
+  const generateBtn = document.getElementById('generateBtn');
+  const regenBtn = document.getElementById('regenBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadMdBtn = document.getElementById('downloadMdBtn');
+  const printBtn = document.getElementById('printBtn');
+  const statusLine = document.getElementById('statusLine');
+  const sheet = document.getElementById('sheet');
+  const errorMsg = document.getElementById('errorMsg');
+  const historyStrip = document.getElementById('historyStrip');
+
+  function showError(msg){
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+  function clearError(){
+    errorMsg.style.display = 'none';
+  }
+
+  async function generate(){
+    clearError();
+    const key = apiKeyEl.value.trim();
+    const model = document.getElementById('model').value.trim() || 'claude-sonnet-4-6';
+    const transcript = transcriptEl.value.trim();
+
+    if(!key){ showError('Add your Anthropic API key under "API settings" to generate a document.'); return; }
+    if(!transcript){ showError('Paste a transcript or process description first.'); return; }
+
+    if(rememberKeyEl.checked) localStorage.setItem('tsg_api_key', key);
+
+    generateBtn.disabled = true;
+    regenBtn.disabled = true;
+    generateBtn.textContent = 'Generating…';
+    renderLoading();
+
+    const {system, user} = buildPrompt();
+
+    try{
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': key,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: 4000,
+          system: system,
+          messages: [{role:'user', content: user}]
+        })
+      });
+
+      const data = await res.json();
+
+      if(!res.ok){
+        const msg = (data && data.error && data.error.message) ? data.error.message : ('Request failed with status ' + res.status);
+        throw new Error(msg);
+      }
+
+      const text = (data.content || []).map(b => b.text || '').join('\n').trim();
+      if(!text) throw new Error('The model returned an empty response. Try again.');
+
+      const doc = {
+        markdown: text,
+        type: selectedType,
+        typeLabel: TYPE_LABELS[selectedType],
+        processName: document.getElementById('processName').value.trim() || 'Untitled Process',
+        createdAt: new Date()
+      };
+      historyDocs.push(doc);
+      activeHistIndex = historyDocs.length - 1;
+      renderHistory();
+      renderDoc(doc);
+
+    }catch(err){
+      renderEmpty();
+      let msg = err.message || 'Something went wrong.';
+      if(msg.toLowerCase().includes('failed to fetch')){
+        msg = 'Could not reach the Anthropic API. Check your internet connection and API key.';
+      }
+      showError(msg);
+    }finally{
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate document';
+      regenBtn.disabled = historyDocs.length === 0;
+    }
+  }
+
+  function renderLoading(){
+    sheet.innerHTML = `<div class="loader">
+      <div class="stamp-anim">GEN&shy;ERAT&shy;ING</div>
+      <p>Reading the transcript and drafting the document…</p>
+    </div>`;
+    statusLine.textContent = 'GENERATING…';
+  }
+
+  function renderEmpty(){
+    sheet.innerHTML = `<div class="empty-state" id="emptyState">
+      <div class="glyph-big">?</div>
+      <p>Upload or paste a messy process on the left. The generator will turn it into a structured, numbered document — ready to hand to your team.</p>
+    </div>`;
+    statusLine.textContent = 'NO DOCUMENT GENERATED YET';
+    copyBtn.disabled = true;
+    downloadMdBtn.disabled = true;
+    printBtn.disabled = true;
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderDoc(doc){
+    const rev = 'A';
+    const dateStr = doc.createdAt.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+    let html;
+    try{
+      html = marked.parse(doc.markdown);
+    }catch(e){
+      html = '<pre>' + escapeHtml(doc.markdown) + '</pre>';
+    }
+
+    sheet.innerHTML = `
+      <div class="stamp-seal">GENERATED<div class="stamp-date">${dateStr}</div></div>
+      <div class="doc-control">
+        <div><span class="dc-label">Document</span><span class="dc-val">${escapeHtml(doc.processName)}</span></div>
+        <div><span class="dc-label">Type</span><span class="dc-val">${escapeHtml(doc.typeLabel)}</span></div>
+        <div><span class="dc-label">Revision</span><span class="dc-val">${rev}</span></div>
+        <div><span class="dc-label">Effective</span><span class="dc-val">${dateStr}</span></div>
+      </div>
+      <div class="doc-body">${html}</div>
+    `;
+    statusLine.textContent = 'DOCUMENT READY · ' + doc.typeLabel.toUpperCase();
+    copyBtn.disabled = false;
+    downloadMdBtn.disabled = false;
+    printBtn.disabled = false;
+  }
+
+  function renderHistory(){
+    historyStrip.innerHTML = '';
+    if(historyDocs.length <= 1) return;
+    historyDocs.forEach((doc, i)=>{
+      const tab = document.createElement('div');
+      tab.className = 'hist-tab' + (i===activeHistIndex ? ' active' : '');
+      tab.textContent = (i+1) + '. ' + doc.processName;
+      tab.addEventListener('click', ()=>{
+        activeHistIndex = i;
+        renderDoc(doc);
+        renderHistory();
+      });
+      historyStrip.appendChild(tab);
+    });
+  }
+
+  generateBtn.addEventListener('click', generate);
+  regenBtn.addEventListener('click', generate);
+
+  copyBtn.addEventListener('click', async ()=>{
+    if(activeHistIndex < 0) return;
+    await navigator.clipboard.writeText(historyDocs[activeHistIndex].markdown);
+    copyBtn.textContent = 'Copied!';
+    setTimeout(()=> copyBtn.textContent = 'Copy', 1400);
+  });
+
+  downloadMdBtn.addEventListener('click', ()=>{
+    if(activeHistIndex < 0) return;
+    const doc = historyDocs[activeHistIndex];
+    const blob = new Blob([doc.markdown], {type:'text/markdown'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = doc.processName.replace(/[^a-z0-9]+/gi,'-').toLowerCase() + '.md';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  printBtn.addEventListener('click', ()=> window.print());
+
+})();
+</script>
+</body>
+</html>
