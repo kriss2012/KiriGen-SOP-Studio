@@ -1,10 +1,10 @@
 # Team SOP Generator: Technical Documentation & User Guide
 
+🌐 **Live Demo:** https://kriss2012.github.io/KiriGen-SOP-Studio/
+
 Turn messy process notes — including raw Loom transcripts, chaotic Slack threads, voice memo brain-dumps, and stream-of-consciousness rambling — into clean, highly structured operating documents your team can actually execute. This tool transforms unorganized institutional knowledge into production-ready SOPs, onboarding guides, high-density checklists, or QA frameworks.
 
 This application is built as a single, self-contained, zero-dependency web page. There is no server architecture, no installation process, and no build step. It operates entirely client-side, calling the Anthropic API directly from the user's browser using a "Bring Your Own Key" (BYOK) model.
-
----
 
 ## 🚀 Quick Start Guide
 
