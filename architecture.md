@@ -82,3 +82,4 @@ flowchart LR
 - **Billing webhooks** — `Subscription` model exists; Stripe/Razorpay
   webhook handlers to keep `status`/`currentPeriodEnd` in sync are not
   scaffolded.
+Love 💕 By KiriGen Tech 
