@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# build outputs
+.next/
+dist/
+build/
+.turbo/
+
+# env
+.env
+.env.local
+.env*.local
+
+# misc
+.DS_Store
+*.log
+coverage/
+
+# prisma
+prisma/dev.db
+
+# IDE
+.vscode/
+.idea/
