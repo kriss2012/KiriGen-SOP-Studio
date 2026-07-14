@@ -1,0 +1,262 @@
+openapi: 3.0.3
+info:
+  title: KiriGen TeamSOP AI API
+  description: SOP generation, team management, and QA workflow API.
+  version: 0.1.0
+servers:
+  - url: http://localhost:4000/api
+    description: Local dev
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/signup:
+    post:
+      tags: [auth]
+      summary: Create an account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignupRequest' }
+      responses:
+        '201': { description: Account created, returns an access token, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '409': { description: Email already registered }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Log in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+        '401': { description: Invalid credentials }
+
+  /sops:
+    get:
+      tags: [sops]
+      summary: List SOPs accessible to the current user
+      parameters:
+        - name: teamId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: A list of SOPs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SOP' }
+    post:
+      tags: [sops]
+      summary: Create a SOP manually
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSopRequest' }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/SOP' } } } }
+
+  /sops/generate:
+    post:
+      tags: [sops]
+      summary: Generate a SOP/onboarding doc/checklist/QA doc from a transcript or Loom URL, and persist it as a draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GenerateSopRequest' }
+      responses:
+        '201': { description: Draft created, content: { application/json: { schema: { $ref: '#/components/schemas/SOP' } } } }
+
+  /sops/{id}:
+    get:
+      tags: [sops]
+      summary: Get a single SOP
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SOP' } } } }
+        '404': { description: Not found }
+    patch:
+      tags: [sops]
+      summary: Update a SOP (bumps version)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSopRequest' }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/SOP' } } } }
+    delete:
+      tags: [sops]
+      summary: Delete a SOP
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Deleted }
+
+  /sops/{id}/approve:
+    post:
+      tags: [sops]
+      summary: Mark a SOP as approved and write an audit log entry
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '201': { description: Approved, content: { application/json: { schema: { $ref: '#/components/schemas/SOP' } } } }
+
+  /teams:
+    get:
+      tags: [teams]
+      summary: List teams the current user belongs to
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Team' }
+    post:
+      tags: [teams]
+      summary: Create a team
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTeamRequest' }
+      responses:
+        '201': { description: Created }
+
+  /teams/{id}/invite:
+    post:
+      tags: [teams]
+      summary: Invite an existing user to a team by email
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InviteMemberRequest' }
+      responses:
+        '201': { description: Invited }
+        '404': { description: No user with that email yet }
+
+  /analytics/usage:
+    get:
+      tags: [analytics]
+      summary: Usage summary for a team (counts, pending review %)
+      parameters:
+        - { name: teamId, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+
+  /ai/preview:
+    post:
+      tags: [ai]
+      summary: Generate a document preview without persisting it
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GenerateSopRequest' }
+      responses:
+        '200': { description: OK }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SignupRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        name: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, example: Bearer }
+
+    SOP:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        content: { type: string, nullable: true }
+        status: { type: string, enum: [DRAFT, IN_REVIEW, APPROVED, PUBLISHED, ARCHIVED] }
+        sourceType: { type: string, enum: [MANUAL, LOOM_TRANSCRIPT, UPLOADED_DOC, AI_GENERATED] }
+        version: { type: integer }
+        teamId: { type: string }
+        authorId: { type: string }
+        tags: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateSopRequest:
+      type: object
+      required: [title, teamId]
+      properties:
+        title: { type: string }
+        teamId: { type: string }
+        content: { type: string }
+        sourceType: { type: string }
+        sourceRef: { type: string }
+        tags: { type: array, items: { type: string } }
+
+    UpdateSopRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateSopRequest'
+      description: All fields optional (PATCH semantics)
+
+    GenerateSopRequest:
+      type: object
+      required: [docType, teamId]
+      properties:
+        rawText: { type: string, description: "Raw transcript/notes. Provide this or loomUrl." }
+        loomUrl: { type: string, description: "A loom.com/share/... URL. Provide this or rawText." }
+        docType: { type: string, enum: [sop, onboarding, checklist, qa] }
+        detailLevel: { type: string, enum: [concise, standard, thorough], default: standard }
+        teamId: { type: string }
+
+    Team:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        orgId: { type: string }
+
+    CreateTeamRequest:
+      type: object
+      required: [name, orgId]
+      properties:
+        name: { type: string }
+        orgId: { type: string }
+
+    InviteMemberRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email: { type: string, format: email }
+        role: { type: string, enum: [ADMIN, EDITOR, REVIEWER, VIEWER] }
