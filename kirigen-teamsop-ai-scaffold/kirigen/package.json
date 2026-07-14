@@ -1,0 +1,30 @@
+{
+  "name": "kirigen-teamsop-ai",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
+    "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "db:seed": "ts-node prisma/seed.ts",
+    "docker:up": "docker compose -f docker/docker-compose.yml up --build",
+    "docker:down": "docker compose -f docker/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "prisma": "^5.14.0",
+    "ts-node": "^10.9.2"
+  },
+  "packageManager": "pnpm@9.1.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
