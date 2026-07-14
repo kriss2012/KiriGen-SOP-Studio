@@ -1,0 +1,238 @@
+// KiriGen TeamSOP AI — Prisma schema
+// Run `pnpm db:generate` after editing, then `pnpm db:migrate` to apply.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identity & tenancy
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String?
+  name          String?
+  avatarUrl     String?
+  isSuperAdmin  Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  memberships   TeamMember[]
+  authoredSops  SOP[]          @relation("SopAuthor")
+  comments      Comment[]
+  auditLogs     AuditLog[]
+  trainingRecords TrainingRecord[]
+  sessions      Session[]
+
+  @@index([email])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  plan      String   @default("free") // free | pro | business | enterprise
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teams        Team[]
+  subscription Subscription?
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   TeamMember[]
+  sops      SOP[]
+  workflows Workflow[]
+
+  @@index([orgId])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   String
+  role     Role     @default(VIEWER)
+  joinedAt DateTime @default(now())
+
+  @@unique([userId, teamId])
+  @@index([teamId])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  REVIEWER
+  VIEWER
+}
+
+// ---------------------------------------------------------------------------
+// Core SOP domain
+// ---------------------------------------------------------------------------
+
+model SOP {
+  id           String   @id @default(uuid())
+  title        String
+  content      String?  // rendered markdown / rich text
+  summary      String?
+  status       SopStatus @default(DRAFT)
+  sourceType   SourceType @default(MANUAL)
+  sourceRef    String?  // Loom URL, uploaded file key, etc.
+  version      Int      @default(1)
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       String
+  author       User     @relation("SopAuthor", fields: [authorId], references: [id])
+  authorId     String
+  tags         String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  checklistItems ChecklistItem[]
+  comments       Comment[]
+  auditLogs      AuditLog[]
+  versions       SopVersion[]
+  trainingRecords TrainingRecord[]
+
+  @@index([teamId])
+  @@index([status])
+}
+
+enum SopStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SourceType {
+  MANUAL
+  LOOM_TRANSCRIPT
+  UPLOADED_DOC
+  AI_GENERATED
+}
+
+// Immutable snapshot created every time a SOP is published/approved.
+model SopVersion {
+  id        String   @id @default(uuid())
+  sop       SOP      @relation(fields: [sopId], references: [id], onDelete: Cascade)
+  sopId     String
+  version   Int
+  content   String
+  changelog String?
+  createdAt DateTime @default(now())
+
+  @@unique([sopId, version])
+}
+
+model ChecklistItem {
+  id          String   @id @default(uuid())
+  sop         SOP      @relation(fields: [sopId], references: [id], onDelete: Cascade)
+  sopId       String
+  description String
+  required    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([sopId])
+}
+
+model Comment {
+  id       String   @id @default(uuid())
+  sop      SOP      @relation(fields: [sopId], references: [id], onDelete: Cascade)
+  sopId    String
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
+  content  String
+  postedAt DateTime @default(now())
+
+  @@index([sopId])
+}
+
+model AuditLog {
+  id       String   @id @default(uuid())
+  sop      SOP?     @relation(fields: [sopId], references: [id], onDelete: SetNull)
+  sopId    String?
+  action   String   // e.g. "created", "approved", "published", "reverted"
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String
+  metadata Json?
+  time     DateTime @default(now())
+
+  @@index([sopId])
+}
+
+// ---------------------------------------------------------------------------
+// Workflow builder
+// ---------------------------------------------------------------------------
+
+model Workflow {
+  id        String   @id @default(uuid())
+  name      String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  // BPMN-ish graph: { nodes: [...], edges: [...] }
+  definition Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([teamId])
+}
+
+// ---------------------------------------------------------------------------
+// Training / LMS-style tracking
+// ---------------------------------------------------------------------------
+
+model TrainingRecord {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  sop         SOP      @relation(fields: [sopId], references: [id], onDelete: Cascade)
+  sopId       String
+  status      String   @default("not_started") // not_started | in_progress | completed
+  completedAt DateTime?
+
+  @@unique([userId, sopId])
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+model Subscription {
+  id                 String   @id @default(uuid())
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String   @unique
+  provider           String   // stripe | razorpay
+  externalCustomerId String?
+  externalSubId      String?
+  plan               String
+  status             String   // active | past_due | canceled | trialing
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
