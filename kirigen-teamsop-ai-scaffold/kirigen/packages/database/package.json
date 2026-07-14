@@ -1,0 +1,8 @@
+{
+  "name": "@kirigen/database",
+  "version": "0.1.0",
+  "main": "src/client.ts",
+  "dependencies": {
+    "@prisma/client": "^5.14.0"
+  }
+}
