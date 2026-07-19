@@ -1,116 +1,235 @@
-# Team SOP Generator: Technical Documentation & User Guide
+<div align="center">
 
-🌐 **Live Demo:** https://kriss2012.github.io/KiriGen-SOP-Studio/
+<img src="https://capsule-render.vercel.app/api?type=waving&height=280&color=gradient&text=Team%20SOP%20Generator&fontSize=58&fontColor=ffffff&animation=fadeIn"/>
 
-Turn messy process notes — including raw Loom transcripts, chaotic Slack threads, voice memo brain-dumps, and stream-of-consciousness rambling — into clean, highly structured operating documents your team can actually execute. This tool transforms unorganized institutional knowledge into production-ready SOPs, onboarding guides, high-density checklists, or QA frameworks.
+<br>
 
-This application is built as a single, self-contained, zero-dependency web page. There is no server architecture, no installation process, and no build step. It operates entirely client-side, calling the Anthropic API directly from the user's browser using a "Bring Your Own Key" (BYOK) model.
+<img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=700&size=28&duration=3000&pause=1200&color=00E5FF&center=true&vCenter=true&width=1000&lines=Technical+Documentation+%26+User+Guide;Transform+Messy+Notes+Into+Professional+SOPs;Powered+by+Claude+AI;Zero+Dependency+Architecture;Client+Side+AI+Workspace"/>
 
-## 🚀 Quick Start Guide
+<br><br>
 
-Follow these steps to deploy and start running the generator locally on your machine:
+<a href="https://kriss2012.github.io/KiriGen-SOP-Studio/">
 
-1. **Extract the Package:** Unzip the downloaded project folder to a directory of your choice.
-2. **Launch the Interface:** Double-click `index.html` or drag the file directly into any modern web browser (*Google Chrome, Apple Safari, Mozilla Firefox, or Microsoft Edge*).
-3. **Configure Authentication:**
-   * Click on the **⚙ API Settings** gear icon in the interface.
-   * Paste your active Anthropic API key into the input field.
-   * *Missing a key?* You can provision one instantly at the [Anthropic Developer Console](https://anthropic.com).
-   * **Optional Security Preference:** Toggle the *"Remember key on this device"* checkbox to persist your key across browser sessions. This utilizes the browser's native `localStorage` API. The key is isolated to your local origin and is never transmitted to any third-party infrastructure.
-4. **Select Document Framework:** Choose one of the four core output types (*SOP, Onboarding Doc, Checklist, or QA System*) depending on your targeted end-user.
-5. **Ingest Raw Material:**
-   * Paste your raw, unedited transcripts, notes, or messages into the **"Raw material"** text area.
-   * Alternatively, use the **"Attach a .txt/.md file"** interface to upload text-based files directly from your file system.
-6. **Inject Process Context (Highly Recommended):** 
-   * Fill out the **Process Name** (e.g., *Monthly Payroll Reconciliation*).
-   * Define **Who runs the process** (e.g., *Junior Accountant / HR Lead*). 
-   * Providing these specific parameters forces the underlying LLM to ground its output, mitigating generic text generation and ensuring accurate operational syntax.
-7. **Execute:** Click the **Generate document** button.
+<img src="https://img.shields.io/badge/🌐%20Live%20Demo-Open%20Application-blue?style=for-the-badge"/>
 
----
+</a>
 
-## 🔄 Document Workspace & Post-Generation Actions
+<img src="https://img.shields.io/badge/Claude-AI-orange?style=for-the-badge"/>
 
-Once execution completes, your finalized asset renders in the right-hand preview pane. It is styled natively to resemble a physical, real-world operational document—complete with automated document-control headers, version metadata slots, and strictly ordered sequential steps.
+<img src="https://img.shields.io/badge/HTML5-Zero%20Dependency-E34F26?style=for-the-badge&logo=html5"/>
 
-From the preview pane, you can leverage several native productivity actions:
+<img src="https://img.shields.io/badge/JavaScript-ES6-yellow?style=for-the-badge&logo=javascript"/>
 
-* **Copy Markdown:** Copies the raw, unrendered Markdown string straight to your clipboard. This is optimized for immediate pasting into team knowledge bases like **Notion, Google Docs, Confluence, Slite, or Obsidian**.
-* **Download `.md`:** Generates and downloads a physical Markdown file directly to your local download directory for offline source-control storage.
-* **Print / Export PDF:** Triggers your browser's native print engine. The CSS includes specific `@media print` stylesheets that strip away web UI elements (buttons, sidebars, settings), giving you a pristine, corporate-ready PDF printout.
-* **Regenerate / Iterate:** Iteratively re-run the prompt against the same raw material. This is highly effective if you have modified the process name, targeted operator, or adjusted the targeted detail level.
+<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"/>
 
-> 💡 **Session Persistence Matrix:** Every document generated within an active browser session is stored in an in-memory tab strip running directly underneath the document viewer. You can safely flip back and forth between completely different generated SOPs without losing state or risk overriding your previous work. Refreshing the tab will clear this volatile session cache.
+</div>
 
----
+<hr>
 
-## 📊 Deep Dive: The Four Core Document Architectures
+<div align="center">
 
-The system uses highly tailored, structural system prompts to shape raw inputs into four distinct operational shapes. You can further modify these shapes using the depth slider (**Concise**, **Standard**, or **Thorough**).
+<img src="https://capsule-render.vercel.app/api?type=rect&height=90&text=📘%20Technical%20Documentation%20%26%20User%20Guide&fontSize=34&color=gradient"/>
 
-| Document Type | Core Objective | Primary Structural Components Included | Ideal Target Audience |
-| :--- | :--- | :--- | :--- |
-| **SOP (Standard Operating Procedure)** | Establishes a formal, repeatable organizational baseline for recurring operations. | Document Control Header, Purpose Statement, Required Tooling Stack, Chronological Numbered Steps, Definition of Done (DoD). | Experienced Operators, System Admins, Cross-trained Teammates. |
-| **Onboarding Guide** | Bridges the gap between mechanical execution and organizational theory. | Contextual "Why" Statements, Conceptual Deep Dives, Common Pitfalls, Industry Glossary, Success Metrics. | New Hires, External Contractors, Interns. |
-| **Checklist** | Maximizes scannability and mitigates human error during real-time execution. | Chronological Phases (Pre-flight, Execution, Post-flight), Interactive Checkboxes, High-density Fragments. | Field Operators, Live Deployment Engineers, Daily Sync Routines. |
-| **QA System** | Constructs a defensive framework to audit, catch anomalies, and govern outputs. | Pass/Fail Criteria Checklist, Boundary Conditions, Escalation Matrix Paths, Mandatory Review Cadence. | Quality Assurance Teams, Managers, Peer Reviewers. |
+</div>
 
----
+<p>
 
-## 🔑 Security Topology & API Management
+Turn messy process notes — including raw Loom transcripts, chaotic Slack threads, voice memo brain-dumps, and stream-of-consciousness rambling — into clean, highly structured operating documents your team can actually execute.
 
-Because this utility relies entirely on a client-side architecture, maintaining strict security boundaries is paramount.
+This tool transforms unorganized institutional knowledge into production-ready SOPs, onboarding guides, high-density checklists, or QA frameworks.
 
-* **Direct Transport Vector:** Your API key interacts solely with `https://anthropic.com`. It moves exclusively from your machine's browser sandbox to Anthropic's secure endpoints over an encrypted HTTPS layer.
-* **No Database/Backend Middleware:** There is zero server logging, proxy tracking, or third-party collection telemetry implemented in this project.
-* **Deployment Warnings:** 
-  * ❌ **Do not host this file unmodified on a public, unauthenticated URL.** If an attacker scrapes the file and discovers an embedded key in the source code or local storage, your API account can be drained.
-  * ❌ **Do not distribute modified versions of the file with your personal key hardcoded** into the script blocks.
-  * 😎 **Internal Team Distribution:** To distribute this tool safely within your organization, share the raw source files via private repositories (e.g., GitHub, GitLab) or internal zip networks. Instruct every individual contributor to provision and input their own isolated Anthropic API key.
+</p>
 
----
+<p>
 
-## 🛠️ Advanced Tweak Guide & Architectural Customization
+This application is built as a single, self-contained, zero-dependency web page.
 
-Because the entire application architecture is consolidated into a singular `index.html` file, you can modify fonts, prompts, and models instantly using a standard code editor (such as VS Code or Cursor).
+There is no server architecture, no installation process, and no build step.
 
-### 1. Changing the AI Engine (Model)
-Locate the HTML element handling the API configurations and find the default model field. It defaults to Anthropic's flagship operational model:
-```html
-<!-- Locate this within your API settings form block -->
-<input type="text" id="modelSelect" value="claude-3-5-sonnet-20241022">
-```
-*You can swap this configuration string out to target other Anthropic models, such as `claude-3-5-haiku-20241022` for ultra-fast, lower-cost processing cycles.*
+It operates entirely client-side, calling the Anthropic API directly from the user's browser using a <b>"Bring Your Own Key (BYOK)"</b> model.
 
-### 2. Tuning Prompt Engineering Instructions
-Scroll to the bottom of the file inside the primary `<script>` tag. You will find a global configuration object named `TYPE_INSTRUCTIONS`. This houses the system prompts for the generator:
-```javascript
-const TYPE_INSTRUCTIONS = {
-    SOP: "You are an expert operations manager. Structural requirements: Create a rigorous, numbered standard operating procedure...",
-    ONBOARDING: "You are an empathetic team mentor. Translate the following raw data into an onboarding guide that explains the core 'why'...",
-    CHECKLIST: "Extract all actionable steps into micro-tasks grouped by phase...",
-    QA: "Analyze the input text for critical failure points and build an inspection framework..."
-};
-```
-*Feel free to append your own corporate formatting rules, specific structural constraints, or prohibited phrases directly into these template strings.*
+</p>
 
-### 3. Modifying Design Tokens (CSS Variables)
-To update the aesthetic formatting or align the output engine with your official corporate brand identity, navigate to the top of the `<style>` block and alter the defined CSS Custom Properties:
-```css
-:root {
-  --paper: #ffffff;     /* Document canvas color */
-  --ink: #1e293b;       /* Primary structural typography */
-  --blueprint: #2563eb; /* Highlighting, headers, accents */
-  --stamp: #dc2626;     /* Alerts, critical status markers */
-  --manila: #f8fafc;    /* Background control panel hue */
-}
-```
+<hr>
 
----
+<div align="center">
 
-## ❓ Deep Troubleshooting Matrix
+<img src="https://capsule-render.vercel.app/api?type=rect&height=90&text=🚀%20Quick%20Start%20Guide&fontSize=34&color=gradient"/>
 
-| Symptoms | Root Cause Analysis | Remediation Protocol |
-| :--- | :--- | :--- |
-| **"Add your Anthropic API key..." banner remains.** | The browser context cannot read an active key string from memory. | Click open the **⚙ API Settings** tab, ensure the key string is fully populated, and verify it begins with the official production signature `sk-ant-`. |
-| **401 Unauthorized Response Error** | The provided API token is invalid, expired, revoked, or lacks adequate billing permissions. | Log into your Anthropic Developer Console. Verify your credit balance is positive, ensure the key hasn't been disabled, and re-copy the token string carefully. |
+</div>
+
+<p>
+
+Follow these steps to deploy and start running the generator locally on your machine.
+
+</p>
+
+<h3>1️⃣ Extract the Package</h3>
+
+<p>
+
+Unzip the downloaded project folder to a directory of your choice.
+
+</p>
+
+<hr>
+
+<h3>2️⃣ Launch the Interface</h3>
+
+<p>
+
+Double-click <code>index.html</code> or drag the file directly into any modern web browser.
+
+Supported browsers include:
+
+</p>
+
+<ul>
+
+<li>Google Chrome</li>
+
+<li>Apple Safari</li>
+
+<li>Mozilla Firefox</li>
+
+<li>Microsoft Edge</li>
+
+</ul>
+
+<hr>
+
+<h3>3️⃣ Configure Authentication</h3>
+
+<ul>
+
+<li>Click the <b>⚙ API Settings</b> gear icon.</li>
+
+<li>Paste your Anthropic API Key.</li>
+
+<li>If you don't have one, create it from the Anthropic Developer Console.</li>
+
+<li>Optionally enable <b>Remember Key on this Device</b>.</li>
+
+<li>The key is stored using the browser's native <code>localStorage</code>.</li>
+
+<li>Your key never leaves your browser except for direct communication with Anthropic.</li>
+
+</ul>
+
+<hr>
+
+<h3>4️⃣ Select Document Framework</h3>
+
+<p>
+
+Choose one of the supported output modes:
+
+</p>
+
+<ul>
+
+<li>📘 SOP</li>
+
+<li>👨‍🏫 Onboarding Document</li>
+
+<li>✅ Checklist</li>
+
+<li>🛡 QA System</li>
+
+</ul>
+
+<hr>
+
+<h3>5️⃣ Ingest Raw Material</h3>
+
+<ul>
+
+<li>Paste transcripts, notes or documentation into the <b>Raw Material</b> area.</li>
+
+<li>Or upload <code>.txt</code> or <code>.md</code> files.</li>
+
+</ul>
+
+<hr>
+
+<h3>6️⃣ Inject Process Context (Highly Recommended)</h3>
+
+<ul>
+
+<li>Fill in the <b>Process Name</b>.</li>
+
+<li>Specify <b>Who runs the process</b>.</li>
+
+<li>This grounds the LLM output and improves operational accuracy.</li>
+
+</ul>
+
+<hr>
+
+<h3>7️⃣ Execute</h3>
+
+<p>
+
+Click the <b>Generate Document</b> button.
+
+</p>
+
+<hr>
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=rect&height=90&text=📄%20Document%20Workspace&fontSize=34&color=gradient"/>
+
+</div>
+
+<p>
+
+Once execution completes, your finalized asset renders inside the preview panel.
+
+The generated document includes:
+
+</p>
+
+<ul>
+
+<li>Automated document control headers</li>
+
+<li>Version metadata placeholders</li>
+
+<li>Professional formatting</li>
+
+<li>Sequential execution steps</li>
+
+</ul>
+
+<hr>
+
+<h3>Available Actions</h3>
+
+<ul>
+
+<li>📋 Copy Markdown</li>
+
+<li>⬇ Download .md</li>
+
+<li>🖨 Print / Export PDF</li>
+
+<li>🔄 Regenerate / Iterate</li>
+
+</ul>
+
+<blockquote>
+
+💡 <b>Session Persistence Matrix</b>
+
+Every generated document remains available inside the session tab strip until the browser tab is refreshed.
+
+</blockquote>
+
+<hr>
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=rect&height=90&text=📊%20Core%20Document%20Architectures&fontSize=34&color=gradient"/>
+
+</div>
